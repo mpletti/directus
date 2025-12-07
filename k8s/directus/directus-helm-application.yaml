@@ -1,0 +1,63 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: directus                   # nome que aparece no ArgoCD
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    repoURL: https://charts.directus.io
+    chart: directus
+    targetRevision: 1.16.2          # versão estável dez/2025 (ou deixe "" para latest)
+    helm:
+      releaseName: directus
+      values: |
+        directus:
+          env:
+            KEY: "troque-por-64-caracteres-aleatorios-aqui-1234567890abcdef"
+            SECRET: "outro-segredo-forte-aqui-0987654321"
+            ADMIN_EMAIL: "admin@seuemail.com"
+            ADMIN_PASSWORD: "MudeEssaSenha123!"
+
+            DB_CLIENT: "pg"
+            DB_HOST: "postgres-directus"
+            DB_PORT: "5432"
+            DB_DATABASE: "directus"
+            DB_USER: "directus"
+            DB_PASSWORD: "directus123seguro"
+
+          ingress:
+            enabled: true
+            className: traefik
+            hosts:
+              - host: directus.10.43.109.113.nip.io   # ← TROQUE pelo seu IP
+                paths:
+                  - path: /
+                    pathType: Prefix
+
+        postgresql:
+          enabled: true
+          auth:
+            postgresPassword: "postgres123seguro"
+            database: "directus"
+            username: "directus"
+            password: "directus123seguro"
+          primary:
+            persistence:
+              enabled: true
+              storageClass: local-path
+              size: 8Gi
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: directus
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
