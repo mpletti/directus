@@ -1,12 +1,27 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: directus
-  namespace: argocd
+  name: directus                 # nome que aparece no ArgoCD
+  namespace: argocd               # sempre no namespace onde o ArgoCD está
 spec:
   project: default
+
   source:
-    repoURL: https://github.com/mpletti/directus.git   # ← seu repo
-    path: directus
-    targetRevision: main
+    repoURL: https://github.com/mpletti/directus.git   # ← MUDE AQUI
+    targetRevision: main                                 # ou a branch que você usar
+    path: directus                                       # pasta onde estão os arquivos abaixo
     helm:
+      releaseName: directus
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: directus
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true   # cria o namespace directus automaticamente
