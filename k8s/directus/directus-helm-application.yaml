@@ -7,21 +7,23 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-
   source:
-    repoURL: https://github.com/directus-labs/helm-chart.git  # ← repo oficial GitHub
-    targetRevision: master  # branch principal (pode usar uma tag específica como v0.1.0 se quiser)
-    path: charts/directus  # caminho dentro do repo onde está o chart
+    repoURL: https://github.com/directus-labs/helm-chart.git
+    targetRevision: master
+    path: charts/directus
     helm:
       releaseName: directus
       values: |
         directus:
+          replicaCount: 1
           env:
-            KEY: "troque-por-64-caracteres-aleatorios-aqui-1234567890abcdef"
-            SECRET: "outro-segredo-forte-aqui-0987654321"
+            KEY: "troque-por-64-caracteres-aleatorios-aqui-1234567890abcdef1234567890abcdef12"
+            SECRET: "outro-segredo-forte-aqui-0987654321abcdef1234567890abcdef12"
             ADMIN_EMAIL: "admin@seuemail.com"
-            ADMIN_PASSWORD: "MudeEssaSenha123!"
+            ADMIN_PASSWORD: "MudeEssaSenhaAGORA123!"
+            NODE_ENV: production
 
+            # === Banco de dados ===
             DB_CLIENT: "pg"
             DB_HOST: "postgres-directus"
             DB_PORT: "5432"
@@ -29,11 +31,15 @@ spec:
             DB_USER: "directus"
             DB_PASSWORD: "directus123seguro"
 
+            # === IMPORTANTE: mata o loop do PM2 ===
+            CLUSTER: "false"
+            PM2_CLUSTER_MODE: "off"
+
           ingress:
             enabled: true
             className: traefik
             hosts:
-              - host: directus.10.43.109.113.nip.io   # ← TROQUE pelo seu IP
+              - host: directus.10.43.109.113.nip.io   # ← seu IP
                 paths:
                   - path: /
                     pathType: Prefix
