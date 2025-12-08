@@ -10,7 +10,7 @@ spec:
 
   source:
     repoURL: https://github.com/directus-labs/helm-chart.git  # ← repo oficial GitHub
-    targetRevision: main  # branch principal (pode usar uma tag específica como v0.1.0 se quiser)
+    targetRevision: master  # branch principal (pode usar uma tag específica como v0.1.0 se quiser)
     path: charts/directus  # caminho dentro do repo onde está o chart
     helm:
       releaseName: directus
