@@ -14,36 +14,11 @@ spec:
     helm:
       releaseName: directus
       values: |
-        directus:
-          replicaCount: 1
-          env:
-            KEY: "troque-por-64-caracteres-aleatorios-aqui-1234567890abcdef1234567890abcdef12"
-            SECRET: "outro-segredo-forte-aqui-0987654321abcdef1234567890abcdef12"
-            ADMIN_EMAIL: "admin@seuemail.com"
-            ADMIN_PASSWORD: "MudeEssaSenhaAGORA123!"
-            NODE_ENV: production
+        # DESATIVA MYSQL (obrigatório no chart antigo)
+        mysql:
+          enabled: false
 
-            # === Banco de dados ===
-            DB_CLIENT: "pg"
-            DB_HOST: "postgres-directus"
-            DB_PORT: "5432"
-            DB_DATABASE: "directus"
-            DB_USER: "directus"
-            DB_PASSWORD: "directus123seguro"
-
-            # === IMPORTANTE: mata o loop do PM2 ===
-            CLUSTER: "false"
-            PM2_CLUSTER_MODE: "off"
-
-          ingress:
-            enabled: true
-            className: traefik
-            hosts:
-              - host: directus.10.43.109.113.nip.io   # ← seu IP
-                paths:
-                  - path: /
-                    pathType: Prefix
-
+        # FORÇA POSTGRESQL como único banco
         postgresql:
           enabled: true
           auth:
@@ -56,6 +31,36 @@ spec:
               enabled: true
               storageClass: local-path
               size: 8Gi
+
+        directus:
+          replicaCount: 1
+          env:
+            KEY: "troque-por-64-caracteres-aleatorios-aqui-1234567890abcdef1234567890abcdef12"
+            SECRET: "outro-segredo-forte-aqui-0987654321abcdef1234567890abcdef12"
+            ADMIN_EMAIL: "admin@seuemail.com"
+            ADMIN_PASSWORD: "MudeEssaSenhaAGORA123!"
+            NODE_ENV: production
+
+            # Banco PostgreSQL
+            DB_CLIENT: "pg"
+            DB_HOST: "directus-postgresql"           # ← MUDOU AQUI (nome do service do postgres no chart)
+            DB_PORT: "5432"
+            DB_DATABASE: "directus"
+            DB_USER: "directus"
+            DB_PASSWORD: "directus123seguro"
+
+            # Mata o loop do PM2
+            CLUSTER: "false"
+            PM2_CLUSTER_MODE: "off"
+
+          ingress:
+            enabled: true
+            className: traefik
+            hosts:
+              - host: directus.10.43.109.113.nip.io
+                paths:
+                  - path: /
+                    pathType: Prefix
 
   destination:
     server: https://kubernetes.default.svc
