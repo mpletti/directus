@@ -1,0 +1,19 @@
+# arquivo: bootstrap-directus.yaml (aplique esse só uma vez)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: directus-bootstrap
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mpletti/directus.git   # ← SEU REPO AQUI
+    targetRevision: main
+    path: k8s/directus                                   # pasta onde está o arquivo acima
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

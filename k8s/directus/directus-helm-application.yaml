@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: directus                   # nome que aparece no ArgoCD
+  name: directus
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -9,9 +9,9 @@ spec:
   project: default
 
   source:
-    repoURL: https://charts.directus.io
-    chart: directus
-    targetRevision: 1.16.2          # versão estável dez/2025 (ou deixe "" para latest)
+    repoURL: https://github.com/directus-labs/helm-chart.git  # ← repo oficial GitHub
+    targetRevision: main  # branch principal (pode usar uma tag específica como v0.1.0 se quiser)
+    path: charts/directus  # caminho dentro do repo onde está o chart
     helm:
       releaseName: directus
       values: |
