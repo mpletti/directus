@@ -7,37 +7,18 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-
   source:
-    repoURL: https://github.com/directus-labs/helm-chart.git  # ← repo oficial GitHub
-    targetRevision: master  # branch principal (pode usar uma tag específica como v0.1.0 se quiser)
-    path: charts/directus  # caminho dentro do repo onde está o chart
+    repoURL: https://github.com/directus-labs/helm-chart.git
+    targetRevision: master
+    path: charts/directus
     helm:
       releaseName: directus
       values: |
-        directus:
-          env:
-            KEY: "troque-por-64-caracteres-aleatorios-aqui-1234567890abcdef"
-            SECRET: "outro-segredo-forte-aqui-0987654321"
-            ADMIN_EMAIL: "admin@seuemail.com"
-            ADMIN_PASSWORD: "MudeEssaSenha123!"
+        # DESATIVA MYSQL COMPLETAMENTE (resolve secret not found e pod mysql Init)
+        mysql:
+          enabled: false
 
-            DB_CLIENT: "pg"
-            DB_HOST: "postgres-directus"
-            DB_PORT: "5432"
-            DB_DATABASE: "directus"
-            DB_USER: "directus"
-            DB_PASSWORD: "directus123seguro"
-
-          ingress:
-            enabled: true
-            className: traefik
-            hosts:
-              - host: directus.10.43.109.113.nip.io   # ← TROQUE pelo seu IP
-                paths:
-                  - path: /
-                    pathType: Prefix
-
+        # POSTGRESQL Puro
         postgresql:
           enabled: true
           auth:
@@ -50,6 +31,52 @@ spec:
               enabled: true
               storageClass: local-path
               size: 8Gi
+
+        # DIRECTUS CONFIG
+        directus:
+          replicaCount: 1
+          env:
+            KEY: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6A7B8C9D0E1F2"  # 64 chars
+            SECRET: "z9y8x7w6v5u4t3s2r1q0p9o8i7u6y5t4r3e2w1q0p9s8t7u6v5w4x3y2z1A2B3C4D5"  # 64 chars
+            ADMIN_EMAIL: "admin@lettisdev.com"
+            ADMIN_PASSWORD: "LettisDev2025Segura!"
+            NODE_ENV: "production"
+
+            DB_CLIENT: "pg"
+            DB_HOST: "directus-postgresql"  # nome correto do service do postgres no chart
+            DB_PORT: "5432"
+            DB_DATABASE: "directus"
+            DB_USER: "directus"
+            DB_PASSWORD: "directus123seguro"
+
+            # Evita loop do PM2
+            CLUSTER: "false"
+            PM2_CLUSTER_MODE: "off"
+
+          ingress:
+            enabled: true
+            className: traefik
+            hosts:
+              - host: directus.10.43.109.113.nip.io
+                paths:
+                  - path: /
+                    pathType: Prefix
+
+          # AUMENTA DELAY DOS PROBES (evita readiness failed na primeira inicialização)
+          readinessProbe:
+            httpGet:
+              path: /server/health
+              port: 8055
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            failureThreshold: 15
+          livenessProbe:
+            httpGet:
+              path: /server/health
+              port: 8055
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            failureThreshold: 10
 
   destination:
     server: https://kubernetes.default.svc
